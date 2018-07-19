@@ -4,16 +4,18 @@ using UnityEngine;
 
 public class PlayerMove : MonoBehaviour
 {
-    public float speed=1f;
-    [Range(1,10)]public float jumpMultiplier=1.2f;
-    [Range(0,1)]public float maxJumpTime=0.3f;
+    public float speed=5f;
+    [Range(1,20)]public float jumpMultiplier=10f;
+
+    private float maxHeight=7f;
+
     public float fallingGravity=1.5f;
     public float smallFallingGravity = 1.2f;
 
     private Rigidbody playerRigidbody;
-    private bool isFirstJumping;
-    private bool isDoubleJumping;
-    private float jumpingTime;
+    private bool isFirstJumpAvail;
+    private bool isSecondJumpAvail;
+
 
     private void Awake()
     {
@@ -22,65 +24,60 @@ public class PlayerMove : MonoBehaviour
     // Use this for initialization
     void Start ()
     {
-        isFirstJumping = false;
-        isDoubleJumping = false;
-        jumpingTime = 0f;
+        isFirstJumpAvail = false;
+        isSecondJumpAvail = false;
+
 	}
 	
 	// Update is called once per frame
 	void Update ()
     {
-        addForwardForce();
-        jump();
+        AddForwardForce();
+        Jump();
         ManageGravity();
     }
 
-    private void addForwardForce()
+    private void AddForwardForce()
     {
         playerRigidbody.AddForce(speed, 0, 0);
     }
 
-    public void jump()
+    public void Jump()
     {
-        if (!isFirstJumping)
+        if (isFirstJumpAvail)
         {
-            PerformJump();
-            //setting the first jump status
-            if (Input.GetButtonUp("Jump")) {
-                isFirstJumping = true;
-                jumpingTime = 0f;
-                print("firstJumpCompleted");
-            }
-        }
-        else if(!isDoubleJumping)
-        {
-            PerformJump();
-            //setting the double jump status
-            if (Input.GetButtonUp("Jump"))
+            if (Input.GetButtonDown("Jump"))
             {
-                isDoubleJumping = true;
-                jumpingTime = 0f;
-                print("SecondJumpCompleted");
+                playerRigidbody.velocity = playerRigidbody.velocity + Vector3.up * jumpMultiplier;
+                isFirstJumpAvail = false;
+            }
+            
+        }
+        else if(isSecondJumpAvail)
+        {
+            if (Input.GetButtonDown("Jump"))
+            {
+                Vector3 tempVelocity = playerRigidbody.velocity;
+                tempVelocity.y = 0f;
+                playerRigidbody.velocity = tempVelocity;
+
+                playerRigidbody.velocity = playerRigidbody.velocity + Vector3.up * jumpMultiplier;
+                isSecondJumpAvail = false;
             }
         }
+
+
     }
 
-    private void PerformJump()
-    {
-        if (Input.GetButton("Jump") && jumpingTime < maxJumpTime)
-        {
-            playerRigidbody.velocity = playerRigidbody.velocity + Vector3.up * jumpMultiplier;
-            jumpingTime += Time.deltaTime;
-        }
-    }
+
 
     private void ManageGravity()
     {
-        if (playerRigidbody.velocity.y < 0)
+        if (!isFirstJumpAvail && playerRigidbody.velocity.y < 0)
         {
             playerRigidbody.velocity += Physics.gravity * fallingGravity * Time.deltaTime;
         }
-        else if (!Input.GetButton("Jump") || jumpingTime > maxJumpTime)
+        else
         {
             playerRigidbody.velocity += Physics.gravity * smallFallingGravity * Time.deltaTime;
         }
@@ -88,8 +85,23 @@ public class PlayerMove : MonoBehaviour
 
     private void TouchGround()
     {
-        isFirstJumping = false;
-        isDoubleJumping = false;
+        isFirstJumpAvail = true;
+        isSecondJumpAvail = true;
     }
 
+    private void OnTriggerEnter(Collider other)
+    {
+
+    }
+
+    private void OnTriggerStay(Collider other)
+    {
+        print("First jump Availability:" + isFirstJumpAvail);
+        print("Second jump Availability:" + isSecondJumpAvail);
+        if (!isFirstJumpAvail)
+        {
+            TouchGround();
+        }
+
+    }
 }
