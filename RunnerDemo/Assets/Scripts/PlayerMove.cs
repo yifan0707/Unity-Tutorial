@@ -96,8 +96,6 @@ public class PlayerMove : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
-        print("First jump Availability:" + isFirstJumpAvail);
-        print("Second jump Availability:" + isSecondJumpAvail);
         if (!isFirstJumpAvail)
         {
             TouchGround();

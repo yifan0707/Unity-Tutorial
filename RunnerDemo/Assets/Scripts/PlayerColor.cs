@@ -39,11 +39,10 @@ public class PlayerColor : MonoBehaviour {
         }
     }
 
-    void OnTriggerEnter(Collider other)
+    void OnTriggerStay(Collider other)
     {
-        if (other.gameObject.layer==LayerMask.NameToLayer("Ground"))
+        if (other.gameObject.layer==LayerMask.NameToLayer("Ground") && CheckTouchGround(other))
         {
-            print("Touch the ground");
             if (other.CompareTag("YellowGround") && currentColor != Constants.COLOR_YELLOW)
             {
                 playerHealth.PlayerDie();
@@ -53,6 +52,11 @@ public class PlayerColor : MonoBehaviour {
                 playerHealth.PlayerDie();
             }
         }
+    }
+
+    bool CheckTouchGround(Collider other) {
+        return this.gameObject.transform.position.y - other.transform.position.y <= 0.01f+other.transform.localScale.y/2 + this.gameObject.transform.localScale.y / 2
+            &&  other.transform.position.y- this.gameObject.transform.position.y<other.transform.localScale.y / 2 + this.gameObject.transform.localScale.y / 2;
     }
 
 }
